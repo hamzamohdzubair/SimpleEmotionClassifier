@@ -3,11 +3,11 @@ import tensorflow as tf
 EXAMPLES = 1000 # HOW BIG THE DATASET WILL BE
 display_step = 1
 
-x = tf.placeholder("float", [None, 38]) # Inputs
+x = tf.placeholder("float", [None, 68]) # Inputs
 y = tf.placeholder("float", [None, 2])  # Classes
 
 weights = {
-    'h1': tf.Variable(tf.random_normal([38, 256])),
+    'h1': tf.Variable(tf.random_normal([68, 256])),
     'h2': tf.Variable(tf.random_normal([256, 256])),
     'out': tf.Variable(tf.random_normal([256, 2]))
 }
