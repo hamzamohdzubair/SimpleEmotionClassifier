@@ -1,20 +1,26 @@
 import tensorflow as tf
+from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
+
+batchX, batchY = mnist.train.next_batch(1)
+print batchX
+print batchY
 
 EXAMPLES = 1000 # HOW BIG THE DATASET WILL BE
 display_step = 1
 
-x = tf.placeholder("float", [None, 68]) # Inputs
-y = tf.placeholder("float", [None, 2])  # Classes
+x = tf.placeholder("float", [None, 136]) # Inputs
+y = tf.placeholder("float", [None, 6])  # Classes
 
 weights = {
-    'h1': tf.Variable(tf.random_normal([68, 256])),
+    'h1': tf.Variable(tf.random_normal([136, 256])),
     'h2': tf.Variable(tf.random_normal([256, 256])),
-    'out': tf.Variable(tf.random_normal([256, 2]))
+    'out': tf.Variable(tf.random_normal([256, 6]))
 }
 biases = {
     'b1': tf.Variable(tf.random_normal([256])),
     'b2': tf.Variable(tf.random_normal([256])),
-    'out': tf.Variable(tf.random_normal([2]))
+    'out': tf.Variable(tf.random_normal([6]))
 }
 
 layer1 = tf.nn.relu(tf.add(tf.matmul(x, weights['h1']), biases['b1']))
