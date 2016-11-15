@@ -7,12 +7,6 @@ import numpy as np
 import tensorflow as tf
 
 
-def partitionData(data, testPercent):
-    howManyNumbers = int(round(testPercent*len(data)))
-    shuffled = data[:]
-    random.shuffle(shuffled)
-    return shuffled[howManyNumbers:], shuffled[:howManyNumbers]
-
 """
 from adiencealign.pipeline.CascadeFaceAligner import CascadeFaceAligner
 cascade_face_aligner = CascadeFaceAligner(haar_file="resources/haarcascade_frontalface_default.xml",
@@ -53,7 +47,11 @@ for folder in os.listdir('Images'):
         label+=1
 print 'All Land Marks have been extracted\n'
 
-trainingData, testingData = partitionData(faces, 0.2)
+howManyNumbers = int(round(0.2*len(faces)))
+shuffled = faces[:]
+random.shuffle(shuffled)
+trainingData = np.asarray(shuffled[howManyNumbers:])
+testingData = np.asarray(shuffled[:howManyNumbers])
 
 print 'total data set size = ' + str(count)
 print 'trainingData size = ' + str(len(trainingData))
