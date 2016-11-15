@@ -2,8 +2,16 @@ import os
 import cv2
 import dlib
 import glob
+import random
 import numpy as np
 import tensorflow as tf
+
+
+def partitionData(data, testPercent):
+    howManyNumbers = int(round(testPercent*len(data)))
+    shuffled = data[:]
+    random.shuffle(shuffled)
+    return shuffled[howManyNumbers:], shuffled[:howManyNumbers]
 
 """
 from adiencealign.pipeline.CascadeFaceAligner import CascadeFaceAligner
@@ -22,8 +30,7 @@ cascade_face_aligner.align_faces(input_images = "Faces/",
                                          is_draw_fidu = True,
                                          delete_no_fidu = True)
 """
-count = 1
-faces, labels, lable = [], [], 0
+faces, label, count = [], 0, 0
 for folder in os.listdir('Images'):
     if os.path.isdir('Images/'+folder):
         for face in glob.glob(os.path.join('Images/'+folder, '*.tiff')):
@@ -36,21 +43,27 @@ for folder in os.listdir('Images'):
             for k,d in enumerate(detections):
                 shape = predictor(image, d)
                 landmarks = np.zeros((67, 2))
+                landmarks = []
                 for i in range(1,68):
-                    landmarks[i-1,0] = shape.part(i).x
-                    landmarks[i-1,1] = shape.part(i).y
-                faces.append(landmarks)
-                labels.append(lable)
+                    landmarks.append(shape.part(i).x)
+                    landmarks.append(shape.part(i).y)
+                faces.append((landmarks,label))
             count += 1
-    print 'Land Marks for lable ' + str(lable) + ' have been extracted'
-    lable+=1
-print 'All Land Marks have been extracted'
+        print 'Land Marks for label ' + str(label) + ' have been extracted'
+        label+=1
+print 'All Land Marks have been extracted\n'
 
-x = tf.placeholder("float", [None, 136]) # Inputs
-y = tf.placeholder("float", [None, 7])  # Classes
+trainingData, testingData = partitionData(faces, 0.2)
+
+print 'total data set size = ' + str(count)
+print 'trainingData size = ' + str(len(trainingData))
+print 'testingData size  = ' + str(len(testingData))
+
+x = tf.placeholder("float", [None, 134])
+y = tf.placeholder("float", [None, 7])
 
 weights = {
-    'h1': tf.Variable(tf.random_normal([136, 256])),
+    'h1': tf.Variable(tf.random_normal([134, 256])),
     'h2': tf.Variable(tf.random_normal([256, 256])),
     'out': tf.Variable(tf.random_normal([256, 7]))
 }
@@ -72,16 +85,16 @@ with tf.Session() as sess:
     sess.run(init)
     for epoch in range(15):
         avg_cost = 0
-        total_batch = int(count/100)
+        total_batch = 1
         for i in range(total_batch):
-            print 'butts'
-            #batchX, batchY = Get the landmarks from the images.
-            #_, c = sess.run([optimizer, cost], feed_dict={x: batchX, y: batchY})
-            #avg_cost += c / total_batch
+            batchX, batchY = [x[0] for x in testingData], [y[1] for y in testingData]
+            _, c = sess.run([optimizer, cost], feed_dict={x: batchX, y: batchY})
+            avg_cost += c / total_batch
         if epoch % 1 == 0:
             print "Epoch", '%04d' % (epoch+1), "cost = ", "{:.9f}".format(avg_cost)
 
     print "Optimization Finished!"
     correctPrediction = tf.equal(tf.argmax(model, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correctPrediction, "float"))
-    #print "Accuracy:", accuracy.eval({x: TEST_IMAGES, y: TEST_LABELS})
+    print "Accuracy:", accuracy.eval({x: [x[0] for x in testingData], y: [y[1] for y in testingData]})
+    
