@@ -64,18 +64,21 @@ y = tf.placeholder("float", [None, 7])
 
 weights = {
     'h1': tf.Variable(tf.random_normal([134, 256])),
-    'h2': tf.Variable(tf.random_normal([256, 256])),
+    'h2': tf.Variable(tf.random_normal([256, 512])),
+    'h3': tf.Variable(tf.random_normal([512, 256])),
     'out': tf.Variable(tf.random_normal([256, 7]))
 }
 biases = {
     'b1': tf.Variable(tf.random_normal([256])),
-    'b2': tf.Variable(tf.random_normal([256])),
+    'b2': tf.Variable(tf.random_normal([512])),
+    'b3': tf.Variable(tf.random_normal([256])),
     'out': tf.Variable(tf.random_normal([7]))
 }
 
 layer1 = tf.nn.relu(tf.add(tf.matmul(x, weights['h1']), biases['b1']))
 layer2 = tf.nn.relu(tf.add(tf.matmul(layer1, weights['h2']), biases['b2']))
-model = tf.matmul(layer2, weights['out']) + biases['out']
+layer3 = tf.nn.relu(tf.add(tf.matmul(layer2, weights['h3']), biases['b3']))
+model = tf.matmul(layer3, weights['out']) + biases['out']
 
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model, y))
 optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(cost)
@@ -84,7 +87,7 @@ saver = tf.train.Saver()
 
 with tf.Session() as sess:
     sess.run(init)
-    for epoch in range(15000):
+    for epoch in range(500000):
         avg_cost = 0
         total_batch = 1
         for i in range(total_batch):
@@ -92,8 +95,8 @@ with tf.Session() as sess:
             _, c = sess.run([optimizer, cost], feed_dict={x: batchX, y: batchY})
             avg_cost += c / total_batch
         if epoch % 1000 == 0:
-            print "Epoch", '%04d' % (epoch+1), "cost = ", "{:.9f}".format(avg_cost)
-            save_path = saver.save(sess, "/resources/model.ckpt")
+            print "Epoch", '%04d' % (epoch), "cost = ", "{:.9f}".format(avg_cost)
+            save_path = saver.save(sess, "resources/model.ckpt")
 
     print "Optimization Finished!"
     correctPrediction = tf.equal(tf.argmax(model, 1), tf.argmax(y, 1))
