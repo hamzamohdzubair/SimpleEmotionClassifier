@@ -82,12 +82,14 @@ model = tf.matmul(layer3, weights['out']) + biases['out']
 
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model, y))
 optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(cost)
-init = tf.initialize_all_variables()
-saver = tf.train.Saver()
+init, saver = tf.initialize_all_variables(), tf.train.Saver()
 
 with tf.Session() as sess:
     sess.run(init)
-    for epoch in range(500000):
+    correctPrediction = tf.equal(tf.argmax(model, 1), tf.argmax(y, 1))
+    accuracy = tf.reduce_mean(tf.cast(correctPrediction, "float"))
+    topAccuracy = 0
+    for epoch in range(40000):
         avg_cost = 0
         total_batch = 1
         for i in range(total_batch):
@@ -96,9 +98,11 @@ with tf.Session() as sess:
             avg_cost += c / total_batch
         if epoch % 1000 == 0:
             print "Epoch", '%04d' % (epoch), "cost = ", "{:.9f}".format(avg_cost)
-            save_path = saver.save(sess, "resources/model.ckpt")
+            currentAccuracy = accuracy.eval({x: [m[0] for m in testingData], y: [n[1] for n in testingData]})
+            print "Epoch Accuracy:", currentAccuracy
+            if topAccuracy < currentAccuracy:
+                save_path = saver.save(sess, "resources/model.ckpt")
 
     print "Optimization Finished!"
-    correctPrediction = tf.equal(tf.argmax(model, 1), tf.argmax(y, 1))
-    accuracy = tf.reduce_mean(tf.cast(correctPrediction, "float"))
-    print "Accuracy:", accuracy.eval({x: [m[0] for m in testingData], y: [n[1] for n in testingData]})
+
+    print "Overall Accuracy:", accuracy.eval({x: [m[0] for m in testingData], y: [n[1] for n in testingData]})
