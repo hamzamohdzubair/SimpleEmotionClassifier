@@ -1,4 +1,4 @@
-# SimpleLandMarkClassifier
+# SimpleEmotionClassifier
 A Simple Emotion Classification Using Facial Landmarks from dlib and Tensorflow
 
 TO-DO
