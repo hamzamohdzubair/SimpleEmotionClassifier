@@ -80,6 +80,7 @@ model = tf.matmul(layer2, weights['out']) + biases['out']
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(model, y))
 optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(cost)
 init = tf.initialize_all_variables()
+saver = tf.train.Saver()
 
 with tf.Session() as sess:
     sess.run(init)
@@ -90,8 +91,9 @@ with tf.Session() as sess:
             batchX, batchY = [m[0] for m in trainingData], [n[1] for n in trainingData]
             _, c = sess.run([optimizer, cost], feed_dict={x: batchX, y: batchY})
             avg_cost += c / total_batch
-        if epoch % 1 == 0:
+        if epoch % 1000 == 0:
             print "Epoch", '%04d' % (epoch+1), "cost = ", "{:.9f}".format(avg_cost)
+            save_path = saver.save(sess, "/resources/model.ckpt")
 
     print "Optimization Finished!"
     correctPrediction = tf.equal(tf.argmax(model, 1), tf.argmax(y, 1))
