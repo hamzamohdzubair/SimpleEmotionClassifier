@@ -6,7 +6,6 @@ import random
 import numpy as np
 import tensorflow as tf
 
-
 """
 from adiencealign.pipeline.CascadeFaceAligner import CascadeFaceAligner
 cascade_face_aligner = CascadeFaceAligner(haar_file="resources/haarcascade_frontalface_default.xml",
@@ -24,6 +23,7 @@ cascade_face_aligner.align_faces(input_images = "Faces/",
                                          is_draw_fidu = True,
                                          delete_no_fidu = True)
 """
+
 faces, label, count = [], 0, 0
 for folder in os.listdir('Images'):
     if os.path.isdir('Images/'+folder):
@@ -36,12 +36,13 @@ for folder in os.listdir('Images'):
             detections = detector(image, 1)
             for k,d in enumerate(detections):
                 shape = predictor(image, d)
-                landmarks = np.zeros((67, 2))
                 landmarks = []
+                labels = np.zeros((7))
                 for i in range(1,68):
                     landmarks.append(shape.part(i).x)
                     landmarks.append(shape.part(i).y)
-                faces.append((landmarks,label))
+                    labels[label] = 1
+                faces.append((landmarks,labels))
             count += 1
         print 'Land Marks for label ' + str(label) + ' have been extracted'
         label+=1
@@ -52,6 +53,7 @@ shuffled = faces[:]
 random.shuffle(shuffled)
 trainingData = np.asarray(shuffled[howManyNumbers:])
 testingData = np.asarray(shuffled[:howManyNumbers])
+print trainingData.shape
 
 print 'total data set size = ' + str(count)
 print 'trainingData size = ' + str(len(trainingData))
@@ -81,11 +83,11 @@ init = tf.initialize_all_variables()
 
 with tf.Session() as sess:
     sess.run(init)
-    for epoch in range(15):
+    for epoch in range(15000):
         avg_cost = 0
         total_batch = 1
         for i in range(total_batch):
-            batchX, batchY = [x[0] for x in testingData], [y[1] for y in testingData]
+            batchX, batchY = [m[0] for m in trainingData], [n[1] for n in trainingData]
             _, c = sess.run([optimizer, cost], feed_dict={x: batchX, y: batchY})
             avg_cost += c / total_batch
         if epoch % 1 == 0:
@@ -94,5 +96,4 @@ with tf.Session() as sess:
     print "Optimization Finished!"
     correctPrediction = tf.equal(tf.argmax(model, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correctPrediction, "float"))
-    print "Accuracy:", accuracy.eval({x: [x[0] for x in testingData], y: [y[1] for y in testingData]})
-    
+    print "Accuracy:", accuracy.eval({x: [m[0] for m in testingData], y: [n[1] for n in testingData]})
