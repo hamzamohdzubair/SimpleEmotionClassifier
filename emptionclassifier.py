@@ -74,12 +74,12 @@ class EmotionClassifier:
 
         with tf.Session() as sess:
             sess.run(init)
-            correctPrediction = tf.equal(tf.argmax(self.model, 1), tf.argmax(self.y, 1))
-            accuracy = tf.reduce_mean(tf.cast(correctPrediction, "float"))
+            correct_prediction = tf.equal(tf.argmax(self.model, 1), tf.argmax(self.y, 1))
+            accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
             for epoch in range(epochs):
-                batchX, batchY = [m[0] for m in training_data], [n[1] for n in training_data]
-                _, avg_cost = sess.run([optimizer, cost], feed_dict={self.x: batchX, self.y: batchY})
+                batch_x, batch_y = [m[0] for m in training_data], [n[1] for n in training_data]
+                _, avg_cost = sess.run([optimizer, cost], feed_dict={self.x: batch_x, self.y: batch_y})
                 if epoch % 5000 == 0:
                     print "Epoch", '%04d' % (epoch), "cost = ", "{:.9f}".format(avg_cost)
 
@@ -87,3 +87,9 @@ class EmotionClassifier:
             saver.save(sess, self.save_path) if self.save_path != '' else ''
             print "Accuracy:", accuracy.eval({self.x: [m[0] for m in testing_data],
                                               self.y: [n[1] for n in testing_data]})
+
+    def classify(self, data):
+        init, saver = tf.initialize_all_variables(), tf.train.Saver()
+        with tf.Session() as sess:
+            sess.run(init)
+            saver.restore(sess, self.save_path)
