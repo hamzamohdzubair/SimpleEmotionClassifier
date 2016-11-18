@@ -7,7 +7,6 @@ def main():
     if len(sys.argv) >= 2:
         mode = sys.argv[1]
         if mode == 'train':
-            print len(sys.argv)
             if len(sys.argv) > 6:
                 faces = landmarks.training_land_marks(sys.argv[2], sys.argv[3], sys.argv[4])
                 training_data, testing_data = emptionclassifier.split_data(faces)
@@ -23,7 +22,8 @@ def main():
             if len(sys.argv) > 5:
                 face = landmarks.land_marks(sys.argv[2], sys.argv[3])
                 classifier = emptionclassifier.EmotionClassifier(int(sys.argv[4]), sys.argv[5])
-                classifier.classify(face)
+                classification = classifier.classify(face)
+                print sys.argv[2] + ' -> ' + str(classification[1])
             else:
                 print 'Please add \'Image Path\' \'Shape Predictor Path\' \'Number of Classes\' \'Session Save Path\''
         else:

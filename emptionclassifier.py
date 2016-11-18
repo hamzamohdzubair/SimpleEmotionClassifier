@@ -1,4 +1,5 @@
 import random
+import numpy as np
 import tensorflow as tf
 
 
@@ -93,3 +94,5 @@ class EmotionClassifier:
         with tf.Session() as sess:
             sess.run(init)
             saver.restore(sess, self.save_path)
+            classification = np.asarray(sess.run(self.model, feed_dict={self.x: data}))
+            return np.unravel_index(classification.argmax(), classification.shape)
