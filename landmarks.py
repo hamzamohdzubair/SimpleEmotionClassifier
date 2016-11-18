@@ -18,7 +18,7 @@ def training_land_marks(dir, file_type, shape_predictor):
     :rtype: A list of tuples each containing a list and a int.
     """
     faces, label, count = [], 0, 0
-    for folder in os.listdir(dir):
+    for folder in sorted(os.listdir(dir)):
         if os.path.isdir(dir + folder):
             for face in glob.glob(os.path.join(dir + folder, '*.' + file_type )):
                 clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
@@ -28,7 +28,7 @@ def training_land_marks(dir, file_type, shape_predictor):
                 for k,d in enumerate(detections):
                     shape = predictor(image, d)
                     landmarks = []
-                    labels = np.zeros((7))
+                    labels = np.zeros(7)
                     for i in range(1,68):
                         landmarks.append(shape.part(i).x)
                         landmarks.append(shape.part(i).y)

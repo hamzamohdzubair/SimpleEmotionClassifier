@@ -31,10 +31,10 @@ class EmotionClassifier:
         """
         self.x = tf.placeholder("float", [None, 134])
         self.y = tf.placeholder("float", [None, num_classes])
-        self.model = self.build_model(num_classes)
+        self.model = self.build_fully_connected_model(num_classes)
         self.save_path = save_path
 
-    def build_model(self, num_classes):
+    def build_fully_connected_model(self, num_classes):
         """ Builds the Neural model for the classifier.
         :param num_classes: The number of different classifications.
         :type num_classes: int
@@ -55,9 +55,37 @@ class EmotionClassifier:
         }
 
         layer1 = tf.nn.relu(tf.add(tf.matmul(self.x, weights['h1']), biases['b1']))
+        layer1 = tf.nn.dropout(layer1, 0.5)
         layer2 = tf.nn.relu(tf.add(tf.matmul(layer1, weights['h2']), biases['b2']))
+        layer2 = tf.nn.dropout(layer2, 0.5)
         layer3 = tf.nn.relu(tf.add(tf.matmul(layer2, weights['h3']), biases['b3']))
         return tf.matmul(layer3, weights['out']) + biases['out']
+
+    def build_convolution_model(self, num_inputs, num_classes):
+        weights = {
+            'wc1': tf.Variable(tf.random_normal([5, 5, 1, 32])),
+            'wc2': tf.Variable(tf.random_normal([5, 5, 32, 64])),
+            'wd1': tf.Variable(tf.random_normal([7*7*64, 1024])),
+            'out': tf.Variable(tf.random_normal([1024, num_classes]))
+        }
+        biases = {
+            'bc1': tf.Variable(tf.random_normal([32])),
+            'bc2': tf.Variable(tf.random_normal([64])),
+            'bd1': tf.Variable(tf.random_normal([1024])),
+            'out': tf.Variable(tf.random_normal([num_classes]))
+        }
+
+        m = tf.reshape(self.x, shape=[-1, 28, 28, 1])
+        m = tf.nn.bias_add(tf.nn.conv1d(m, weights['wc1'], stride=[1, 1, 1, 1], padding='SAME'), biases['bc1'])
+        m = tf.nn.max_pool(m, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+        m = tf.nn.bias_add(tf.nn.conv1d(m, weights['wc2'], stride=[1, 1, 1, 1], padding='SAME'), biases['bc2'])
+        m = tf.nn.max_pool(m, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+
+        m = tf.reshape(m, [-1, weights['wd1'].get_shape().as_list()[0]])
+        m = tf.add(tf.matmul(m, weights['wd1']), biases['bc1'])
+        m = tf.nn.relu(m)
+        m = tf.nn.dropout(m, 0.7)
+        return tf.add(tf.matmul(m, weights['out']), biases['bd1'])
 
     def train(self, training_data, testing_data, epochs=50000):
         """
