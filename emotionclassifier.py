@@ -91,7 +91,7 @@ class EmotionClassifier:
                                               self.y: [n[1] for n in testing_data]})
 
     def classify(self, data):
-        """
+        """ Loads the pre-trained model and uses the input data to return a classification.
         :param data: The data that is to be classified.
         :type data: A list.
         :return: A classification.
