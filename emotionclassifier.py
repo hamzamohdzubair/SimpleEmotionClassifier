@@ -31,10 +31,10 @@ class EmotionClassifier:
         """
         self.x = tf.placeholder("float", [None, 134])
         self.y = tf.placeholder("float", [None, num_classes])
-        self.model = self.build_fully_connected_model(num_classes)
+        self.model = self.build_model(num_classes)
         self.save_path = save_path
 
-    def build_fully_connected_model(self, num_classes):
+    def build_model(self, num_classes):
         """ Builds the Neural model for the classifier.
         :param num_classes: The number of different classifications.
         :type num_classes: int
@@ -61,41 +61,14 @@ class EmotionClassifier:
         layer3 = tf.nn.relu(tf.add(tf.matmul(layer2, weights['h3']), biases['b3']))
         return tf.matmul(layer3, weights['out']) + biases['out']
 
-    def build_convolution_model(self, num_inputs, num_classes):
-        weights = {
-            'wc1': tf.Variable(tf.random_normal([5, 5, 1, 32])),
-            'wc2': tf.Variable(tf.random_normal([5, 5, 32, 64])),
-            'wd1': tf.Variable(tf.random_normal([7*7*64, 1024])),
-            'out': tf.Variable(tf.random_normal([1024, num_classes]))
-        }
-        biases = {
-            'bc1': tf.Variable(tf.random_normal([32])),
-            'bc2': tf.Variable(tf.random_normal([64])),
-            'bd1': tf.Variable(tf.random_normal([1024])),
-            'out': tf.Variable(tf.random_normal([num_classes]))
-        }
-
-        m = tf.reshape(self.x, shape=[-1, 28, 28, 1])
-        m = tf.nn.bias_add(tf.nn.conv1d(m, weights['wc1'], stride=[1, 1, 1, 1], padding='SAME'), biases['bc1'])
-        m = tf.nn.max_pool(m, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
-        m = tf.nn.bias_add(tf.nn.conv1d(m, weights['wc2'], stride=[1, 1, 1, 1], padding='SAME'), biases['bc2'])
-        m = tf.nn.max_pool(m, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
-
-        m = tf.reshape(m, [-1, weights['wd1'].get_shape().as_list()[0]])
-        m = tf.add(tf.matmul(m, weights['wd1']), biases['bc1'])
-        m = tf.nn.relu(m)
-        m = tf.nn.dropout(m, 0.7)
-        return tf.add(tf.matmul(m, weights['out']), biases['bd1'])
-
     def train(self, training_data, testing_data, epochs=50000):
-        """
-
+        """ Trains a classifier with inputted training and testing data for a number of epochs.
         :param training_data: A list of tuples used for training the classifier.
         :type training_data: A list of tuples each containing a list of landmarks and a list of classifications.
         :param testing_data: A list of tuples used for testing the classifier.
         :type testing_data: A list of tuples each containing a list of landmarks and a list of classifications.
         :param epochs: The number of cycles to train the classifier for. Default is 50000.
-        :type epochs: int
+        :type epochs: int.
         """
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.model, self.y))
         optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(cost)
@@ -118,6 +91,12 @@ class EmotionClassifier:
                                               self.y: [n[1] for n in testing_data]})
 
     def classify(self, data):
+        """
+        :param data: The data that is to be classified.
+        :type data: A list.
+        :return: A classification.
+        :rtype: int.
+        """
         init, saver = tf.initialize_all_variables(), tf.train.Saver()
         with tf.Session() as sess:
             sess.run(init)
