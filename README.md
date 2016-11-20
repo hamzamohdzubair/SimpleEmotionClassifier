@@ -1,5 +1,5 @@
 # SimpleEmotionClassifier
-A Simple Emotion Classification system using Facial Landmarks from the Dlib libary and Tensorflow to build and train a nural network.
+A Simple Emotion Classification system that uses Facial Landmarks in order to train a fully connected nural network.
 
 Use
 ---
