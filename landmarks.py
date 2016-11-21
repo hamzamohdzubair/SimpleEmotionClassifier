@@ -3,6 +3,7 @@ import cv2
 import dlib
 import glob
 import numpy as np
+from dlib import rectangle
 
 
 def training_land_marks(dir, file_type, shape_predictor):
@@ -24,6 +25,11 @@ def training_land_marks(dir, file_type, shape_predictor):
                 clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
                 image = clahe.apply(cv2.imread(face, cv2.IMREAD_GRAYSCALE))
                 detector, predictor = dlib.get_frontal_face_detector(), dlib.shape_predictor(shape_predictor)
+                detections = detector(image, 1)
+                for _,d in enumerate(detections):
+                    left, right, top, bottom = d.left()-20, d.right()+20, d.top()-20, d.bottom()+20
+                    image = image[top:bottom, left:right]
+                    image = cv2.resize(image, (200, 200))
                 detections = detector(image, 1)
                 for k,d in enumerate(detections):
                     shape = predictor(image, d)
@@ -53,9 +59,16 @@ def land_marks(image_file, shape_predictor):
     """
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     image = clahe.apply(cv2.imread(image_file, cv2.IMREAD_GRAYSCALE))
+
+
     detector, predictor = dlib.get_frontal_face_detector(), dlib.shape_predictor(shape_predictor)
     landmarks, detections = [], detector(image, 1)
     face = np.zeros((1,134))
+    for _, d in enumerate(detections):
+        left, right, top, bottom = d.left() - 25, d.right() + 25, d.top() - 25, d.bottom() + 25
+        image = image[top:bottom, left:right]
+        image = cv2.resize(image, (200, 200))
+    detections = detector(image, 1)
     for k, d in enumerate(detections):
         shape = predictor(image, d)
         for i in range(1, 68):

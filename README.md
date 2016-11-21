@@ -17,8 +17,3 @@ Prerequisites
 * Numpy
 * TensorFlow
 * Dlib Shape Predictor file
-
-TO-DO
------
-* Normalization on training input images
-* Normalize testing image input
