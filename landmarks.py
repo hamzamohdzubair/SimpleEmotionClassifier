@@ -59,8 +59,6 @@ def land_marks(image_file, shape_predictor):
     """
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     image = clahe.apply(cv2.imread(image_file, cv2.IMREAD_GRAYSCALE))
-
-
     detector, predictor = dlib.get_frontal_face_detector(), dlib.shape_predictor(shape_predictor)
     landmarks, detections = [], detector(image, 1)
     face = np.zeros((1,134))
